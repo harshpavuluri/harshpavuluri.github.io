@@ -1,5 +1,5 @@
 import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom'
-import { useTheme } from './hooks/useTheme'
+import { ThemeProvider } from './hooks/useTheme.jsx'
 import Navbar from './components/Navbar'
 import Footer from './sections/Footer'
 import Home from './pages/Home'
@@ -10,7 +10,6 @@ import Portfolio from './pages/Portfolio'
 import Contact from './pages/Contact'
 
 function Layout() {
-  useTheme()
   return (
     <div className="bg-bg-dark text-text-primary font-body min-h-screen flex flex-col">
       <Navbar />
@@ -37,5 +36,9 @@ const router = createBrowserRouter([
 ])
 
 export default function App() {
-  return <RouterProvider router={router} />
+  return (
+    <ThemeProvider>
+      <RouterProvider router={router} />
+    </ThemeProvider>
+  )
 }

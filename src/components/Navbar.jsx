@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useTheme } from '../hooks/useTheme'
+import { useTheme } from '../hooks/useTheme.jsx'
 
 const navItems = [
   { label: 'Writing', to: '/writing' },
@@ -13,6 +13,7 @@ const navItems = [
 function ThemeToggle({ theme, toggleTheme }) {
   return (
     <button
+      type="button"
       onClick={toggleTheme}
       aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
       className="flex items-center bg-bg-card border border-primary-dim/20 rounded-full p-0.5 cursor-pointer"
@@ -25,7 +26,7 @@ function ThemeToggle({ theme, toggleTheme }) {
           key={value}
           animate={{ opacity: theme === value ? 1 : 0.4 }}
           transition={{ duration: 0.2 }}
-          className={`text-xs px-2.5 py-1 rounded-full select-none transition-colors ${
+          className={`text-xs px-2.5 py-1 rounded-full select-none ${
             theme === value ? 'bg-primary/15 text-primary' : 'text-text-muted'
           }`}
         >
