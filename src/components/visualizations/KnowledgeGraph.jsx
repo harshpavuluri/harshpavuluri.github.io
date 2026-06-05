@@ -1,18 +1,19 @@
 import { useRef, useEffect, useState } from 'react'
 import ForceGraph2D from 'react-force-graph-2d'
-
-const GROUP_COLORS = {
-  core: '#00f0ff',
-  system: '#7c3aed',
-}
-
-function nodeColor(node) {
-  return GROUP_COLORS[node.group] ?? '#555555'
-}
+import { useTheme } from '../../hooks/useTheme'
 
 export default function KnowledgeGraph({ nodes, links, height = 400 }) {
   const containerRef = useRef(null)
   const [width, setWidth] = useState(600)
+  const { theme } = useTheme()
+
+  const isDark = theme === 'dark'
+  const groupColors = isDark
+    ? { core: '#00f0ff', system: '#7c3aed' }
+    : { core: '#b45309', system: '#6d28d9' }
+  const bgColor = isDark ? '#0d0d14' : '#fafaf8'
+  const labelColor = isDark ? '#ffffff' : '#1c1917'
+  const linkColorValue = isDark ? 'rgba(0,240,255,0.15)' : 'rgba(180,83,9,0.2)'
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -36,19 +37,19 @@ export default function KnowledgeGraph({ nodes, links, height = 400 }) {
           width={width}
           height={height}
           nodeLabel="label"
-          nodeColor={nodeColor}
+          nodeColor={node => groupColors[node.group] ?? '#888888'}
           nodeCanvasObjectMode={() => 'after'}
           nodeCanvasObject={(node, ctx, globalScale) => {
             const fontSize = Math.max(10, 12 / globalScale)
             ctx.font = `500 ${fontSize}px Inter, sans-serif`
             ctx.textAlign = 'center'
             ctx.textBaseline = 'middle'
-            ctx.fillStyle = '#ffffff'
+            ctx.fillStyle = labelColor
             ctx.fillText(node.label, node.x, node.y)
           }}
-          linkColor={() => 'rgba(0,240,255,0.15)'}
+          linkColor={() => linkColorValue}
           linkWidth={1.5}
-          backgroundColor="#0d0d14"
+          backgroundColor={bgColor}
         />
       </div>
     </div>

@@ -9,12 +9,12 @@ export default function SectionDivider({ flip = false }) {
       >
         <path
           d="M0,0 L1440,60 L1440,100 L0,100 Z"
-          fill="#0a0a0f"
+          style={{ fill: 'var(--color-bg-dark)' }}
           fillOpacity="0.6"
         />
         <path
           d="M0,20 L1440,80 L1440,100 L0,100 Z"
-          fill="#0a0a0f"
+          style={{ fill: 'var(--color-bg-dark)' }}
         />
       </svg>
     </div>
