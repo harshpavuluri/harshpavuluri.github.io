@@ -13,7 +13,7 @@ export default function Home() {
   return (
     <div>
       {/* Hero */}
-      <section className="relative min-h-screen flex items-start justify-center pt-36 pb-20 overflow-hidden">
+      <section className="relative flex items-start justify-center pt-32 pb-12 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <ParticleBackground />
         </div>
