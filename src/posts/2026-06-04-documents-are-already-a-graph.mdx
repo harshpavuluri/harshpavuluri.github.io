@@ -1,0 +1,160 @@
+---
+title: "Your documents are already a graph. You just can't see the edges."
+date: 2026-06-04
+description: "How I built a knowledge graph MCP server to make a corpus of IBM WatsonX engineering docs queryable by AI agents — and what I learned about why retrieval-augmented generation alone isn't enough."
+tags: [knowledge-graphs, agentic-ai, mcp, ibm, enterprise]
+featured: true
+readTime: 10
+---
+
+import KnowledgeGraph from '../components/visualizations/KnowledgeGraph'
+import ArchitectureDiagram from '../components/visualizations/ArchitectureDiagram'
+
+Every engineering team I've worked with has the same problem, even when they don't recognize it as one.
+
+They have documents. Lots of them. Change requests. Root cause analyses. Runbooks. Meeting notes. System descriptions. The documentation is there — someone wrote it — but it's essentially dead. It gets written when something breaks or ships, filed away, and never looked at again. Not because nobody cares, but because finding the right thing at the right moment is hard enough that people just don't bother.
+
+This is the problem I set out to solve for our WatsonX project work at IBM. We had a growing corpus of markdown documents — over a hundred and climbing — that contained genuinely valuable institutional knowledge. But that knowledge was trapped in flat files in a GitHub repo, queryable only by grep or memory.
+
+The solution wasn't just better search. It was treating the documents as what they already were: a graph that nobody had drawn yet.
+
+## Why RAG isn't enough for engineering docs
+
+The obvious first move is Retrieval-Augmented Generation: chunk your docs, embed them, throw them in a vector database, and let an LLM find relevant passages when you ask questions. This works well for certain use cases. It doesn't work well for engineering documentation.
+
+The problem is that engineering questions are rarely about *content similarity*. They're about *relationships*.
+
+"What other components are affected if I change the auth service?" isn't asking for documents that look like the auth service document. It's asking you to traverse a dependency graph. "Show me every root cause analysis linked to the data pipeline team over the last six months" isn't a semantic similarity query — it's a relational query with a time filter and an ownership constraint.
+
+Vector search is excellent at "find me things that *feel like* this." It's poor at "find me things that are *connected to* this in a specific way." For engineering documentation, you almost always want the latter.
+
+## The architecture: graph + search, not graph *or* search
+
+Here's what I built instead.
+
+<ArchitectureDiagram
+  nodes={[
+    { id: "agents",     label: "AI Agents\n(IBM Bob · Claude Code)", group: "core",   position: { x: 220, y: 0 } },
+    { id: "mcp",        label: "MCP Server\n(Node.js / HTTP·SSE)",    group: "core",   position: { x: 220, y: 110 } },
+    { id: "neo4j",      label: "Neo4j\n(Graph DB)",                   group: "system", position: { x: 60,  y: 230 } },
+    { id: "elastic",    label: "Elasticsearch\n(Hybrid Search)",       group: "system", position: { x: 380, y: 230 } },
+    { id: "ingestion",  label: "Ingestion Pipeline",                   group: "system", position: { x: 220, y: 350 } },
+    { id: "llm",        label: "LLM Adapter",                          group: "system", position: { x: 220, y: 460 } },
+    { id: "lmstudio",   label: "LM Studio\n(dev)",                     group: "leaf",   position: { x: 40,  y: 570 } },
+    { id: "watsonx",    label: "WatsonX.ai\n(prod)",                   group: "leaf",   position: { x: 220, y: 570 } },
+    { id: "github",     label: "GitHub Repo\n(markdown docs)",         group: "leaf",   position: { x: 420, y: 570 } },
+  ]}
+  edges={[
+    { source: "agents",    target: "mcp",       label: "MCP protocol" },
+    { source: "mcp",       target: "neo4j",     label: "Cypher queries" },
+    { source: "mcp",       target: "elastic",   label: "hybrid search" },
+    { source: "ingestion", target: "neo4j",     label: "MERGE upsert" },
+    { source: "ingestion", target: "elastic",   label: "index + embed" },
+    { source: "ingestion", target: "llm",       label: "extract entities" },
+    { source: "llm",       target: "lmstudio"  },
+    { source: "llm",       target: "watsonx"   },
+    { source: "github",    target: "ingestion", label: "poll / ingest" },
+  ]}
+  height={680}
+/>
+
+**Neo4j** stores the graph: documents, components, teams, issues, clients, and the relationships between them. **Elasticsearch** handles hybrid search — BM25 keyword matching combined with semantic vector search. **The MCP server** sits on top and exposes both as tools to any MCP-compatible agent: Claude Code, IBM Bob, or anything else that speaks the protocol.
+
+The key insight is that these two stores are *complementary*, not redundant. When an agent asks a semantic question ("find documents related to model drift in the governance layer"), Elasticsearch handles it. When an agent asks a structural question ("what components does this change request affect, and what depends on those components?"), Neo4j handles it with a Cypher traversal:
+
+```cypher
+MATCH (d:Document)-[:AFFECTS]->(c:Component)-[:DEPENDS_ON*1..3]->(dep:Component)
+WHERE d.title CONTAINS "WatsonX Orchestrate Auth"
+RETURN d.title, c.name, dep.name
+```
+
+Neither store alone can do both jobs well. Together, they cover the full space of questions an engineering agent needs to answer.
+
+## The graph schema: six node types, eight edge types
+
+The schema evolved from asking: what questions do engineers actually ask about these documents?
+
+<KnowledgeGraph
+  nodes={[
+    { id: "document", label: "Document", group: "core" },
+    { id: "component", label: "Component", group: "system" },
+    { id: "team", label: "Team", group: "system" },
+    { id: "issue", label: "Issue", group: "system" },
+    { id: "client", label: "Client", group: "system" },
+    { id: "concept", label: "Concept", group: "leaf" },
+  ]}
+  links={[
+    { source: "document", target: "component" },
+    { source: "document", target: "team" },
+    { source: "document", target: "document" },
+    { source: "document", target: "client" },
+    { source: "document", target: "concept" },
+    { source: "issue", target: "component" },
+    { source: "issue", target: "document" },
+    { source: "component", target: "component" },
+  ]}
+  height={320}
+/>
+
+A `Document` can be a change request, RCA, runbook, meeting note, or system description. It `AFFECTS` components, is `OWNED_BY` a team, `INVOLVES` clients, and `RELATES_TO` other documents with a similarity score. An `Issue` is `CAUSED_BY` a component and `RESOLVED_BY` a document. Components `DEPEND_ON` other components — that last edge type is what makes impact analysis possible.
+
+The `Concept` node is where it gets interesting. These aren't hand-labeled: they're extracted by an LLM as part of the ingestion pipeline. Every document gets tagged with technical and business concepts ("model drift", "data governance", "client SLA constraint") automatically. This gives the graph semantic depth without requiring manual curation.
+
+## The ingestion pipeline: turning markdown into graph
+
+This is the most operationally interesting part. The pipeline runs two ways: on a 15-minute poll of the GitHub repo, or triggered directly via the `ingest_document` MCP tool when an agent needs to process something immediately.
+
+For each document, the pipeline does five things in order:
+
+1. **Parse** — Split YAML frontmatter from body. Extract structured fields (`type`, `author`, `teams`, `components`) when present; fall back gracefully for unstructured prose.
+
+2. **Extract** — Send the document body to an LLM with a structured prompt asking for entities, relationships, and concepts as JSON. This is where the graph edges come from. The LLM doesn't just summarize — it reads the document and tells us what connects to what.
+
+3. **Dedup** — Score new entities against existing graph nodes. Flag potential duplicates. Normalize name variants ("WX Orchestrate" → "WatsonX Orchestrate"). This step is what keeps the graph clean over time.
+
+4. **Write** — Upsert to Neo4j using `MERGE` (idempotent — safe to re-run the whole pipeline at any time), then index into Elasticsearch. Neo4j writes first; if ES fails, we retry ES independently without re-running the extraction.
+
+The pipeline is designed around the assumption that it will be re-run constantly and sometimes fail partway through. Idempotency isn't an afterthought — it's the primary constraint that shaped every design decision.
+
+## The LLM adapter: swapping providers without touching code
+
+One design constraint I cared about: the local development story had to be good, but the production path couldn't require rewriting anything.
+
+LM Studio on my Mac runs Granite 3.1 8B locally and exposes an OpenAI-compatible API. IBM Bob (WatsonX.ai) in production uses a completely different API. The adapter layer makes them look identical to the rest of the system:
+
+```js
+adapter.extractEntities(text)  // → { entities, relationships, concepts }
+adapter.embed(text)             // → float[] vector
+adapter.classify(text, labels)  // → { label, confidence }
+```
+
+Switching from local development to production is a one-line `.env` change: `LLM_PROVIDER=watsonx`. No code changes, no refactoring. This matters a lot in enterprise contexts where the security and compliance requirements for production API access are different from what you'd want to configure every developer machine with.
+
+## What the MCP tools actually look like
+
+The server exposes ten tools total — six for reading, four for writing. The read tools are what agents use most:
+
+- `search_documents` — hybrid BM25 + semantic search with filters (type, team, component, date range)
+- `get_document` — fetch a doc with its full graph context: related docs, affected components, owning team
+- `find_related` — traverse the graph from any node up to N hops
+- `get_impact_analysis` — traverse `DEPENDS_ON` edges to find downstream blast radius
+- `get_history` — all documents touching an entity, ordered by date
+- `find_similar` — top-N semantically similar documents
+
+The write tools are for maintaining graph quality over time: ingesting new documents, manually linking entities the LLM missed, merging duplicates, and adding concept tags.
+
+What this enables is a kind of institutional memory that agents can actually use. An agent working on a change request can ask "what components does this touch and what broke last time someone changed them?" and get a real answer grounded in the actual history of the system — not a hallucination.
+
+## The deeper point
+
+The interesting thing about this project isn't the specific technology stack. Neo4j and Elasticsearch are mature tools; the MCP protocol is well-designed but not magic.
+
+The interesting thing is what it reveals about how engineering knowledge actually works.
+
+Documents don't exist in isolation. A change request exists in relation to the component it modifies, the team that owns it, the issues it was created to fix, the client constraints it had to respect, and the runbooks that will be updated when it ships. These relationships are real — engineers navigate them intuitively every day. But they're invisible in a flat file system, which means AI agents can't navigate them at all.
+
+Building the graph is really just making explicit what's already implicit. The edges were always there. We just couldn't see them.
+
+Once you can see them, the queries become obvious. Once the queries work, agents become genuinely useful for engineering work — not as document summarizers, but as reasoning systems that can traverse institutional knowledge the same way an experienced engineer would.
+
+That's the version of enterprise AI I'm interested in building.
