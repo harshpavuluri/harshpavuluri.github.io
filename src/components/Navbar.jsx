@@ -1,23 +1,29 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-scroll'
+import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const navItems = [
-  { label: 'About', to: 'about' },
-  { label: 'Skills', to: 'skills' },
-  { label: 'Projects', to: 'projects' },
-  { label: 'Contact', to: 'contact' },
+  { label: 'Writing', to: '/writing' },
+  { label: 'About', to: '/about' },
+  { label: 'Portfolio', to: '/portfolio' },
+  { label: 'Contact', to: '/contact' },
 ]
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const location = useLocation()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50)
     window.addEventListener('scroll', onScroll)
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  const isActive = (to) =>
+    to === '/writing'
+      ? location.pathname.startsWith('/writing')
+      : location.pathname === to
 
   return (
     <nav
@@ -30,9 +36,7 @@ export default function Navbar() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link
-            to="hero"
-            smooth={true}
-            duration={500}
+            to="/"
             className="text-lg font-bold text-primary cursor-pointer glow-text"
           >
             Harsha Pavuluri
@@ -44,12 +48,11 @@ export default function Navbar() {
               <Link
                 key={item.to}
                 to={item.to}
-                smooth={true}
-                duration={500}
-                offset={-64}
-                spy={true}
-                activeClass="!text-primary"
-                className="text-sm font-medium text-text-muted hover:text-primary transition-colors cursor-pointer"
+                className={`text-sm font-medium transition-colors cursor-pointer ${
+                  isActive(item.to)
+                    ? 'text-primary border-b border-primary pb-0.5'
+                    : 'text-text-muted hover:text-primary'
+                }`}
               >
                 {item.label}
               </Link>
@@ -92,13 +95,12 @@ export default function Navbar() {
                 <Link
                   key={item.to}
                   to={item.to}
-                  smooth={true}
-                  duration={500}
-                  offset={-64}
-                  spy={true}
-                  activeClass="!text-primary"
                   onClick={() => setMenuOpen(false)}
-                  className="text-sm font-medium text-text-muted hover:text-primary transition-colors cursor-pointer"
+                  className={`text-sm font-medium transition-colors cursor-pointer ${
+                    isActive(item.to)
+                      ? 'text-primary'
+                      : 'text-text-muted hover:text-primary'
+                  }`}
                 >
                   {item.label}
                 </Link>
