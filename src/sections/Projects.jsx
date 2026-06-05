@@ -28,7 +28,7 @@ function ProjectCard({ project, index }) {
 
         {/* Content */}
         <div className="p-6 lg:p-8 flex flex-col justify-center">
-          <h3 className="text-xl font-bold text-white mb-3">{project.title}</h3>
+          <h3 className="text-xl font-bold text-text-primary mb-3">{project.title}</h3>
           <p className="text-text-muted text-sm leading-relaxed mb-4">
             {project.description}
           </p>
@@ -52,7 +52,7 @@ function ProjectCard({ project, index }) {
               href={project.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-sm text-primary hover:text-white
+              className="inline-flex items-center gap-2 text-sm text-primary hover:text-text-primary
                          transition-colors duration-300 font-medium group"
             >
               View Repository
@@ -72,7 +72,7 @@ export default function Projects() {
     <section id="projects" className="py-20 md:py-32 bg-bg-dark">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal>
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-2 text-white">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-2 text-text-primary">
             Projects
           </h2>
           <div className="w-16 h-1 bg-primary mx-auto mt-4 mb-16 rounded-full glow-cyan" />

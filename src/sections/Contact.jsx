@@ -36,7 +36,7 @@ export default function Contact() {
     <section id="contact" className="py-20 md:py-32 bg-bg-dark">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal>
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-2 text-white">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-2 text-text-primary">
             Get In Touch
           </h2>
           <div className="w-16 h-1 bg-primary mx-auto mt-4 mb-16 rounded-full glow-cyan" />
@@ -58,7 +58,7 @@ export default function Contact() {
                            hover:border-primary/40 transition-colors duration-300"
               >
                 <Icon className="text-2xl text-primary mb-4" />
-                <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-2">
+                <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider mb-2">
                   {card.label}
                 </h3>
                 <span className="text-text-muted text-sm">{card.value}</span>

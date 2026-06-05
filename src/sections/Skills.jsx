@@ -52,7 +52,7 @@ export default function Skills() {
     <section id="skills" className="py-20 md:py-32 bg-bg-dark">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal>
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-2 text-white">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-2 text-text-primary">
             Tech Stack
           </h2>
           <div className="w-16 h-1 bg-primary mx-auto mt-4 mb-16 rounded-full glow-cyan" />

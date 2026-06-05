@@ -44,7 +44,7 @@ export default function Post() {
             </span>
           ))}
         </div>
-        <h1 className="text-3xl font-extrabold text-white leading-tight mb-3">{title}</h1>
+        <h1 className="text-3xl font-extrabold text-text-primary leading-tight mb-3">{title}</h1>
         <div className="flex items-center gap-3 text-text-muted text-xs">
           <span>Harsha Pavuluri</span>
           <span>·</span>

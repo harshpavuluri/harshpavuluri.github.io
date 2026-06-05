@@ -11,7 +11,7 @@ export default function Writing() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-24">
-      <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Writing</h1>
+      <h1 className="text-3xl md:text-4xl font-bold text-text-primary mb-2">Writing</h1>
       <p className="text-text-muted text-base mb-8">
         Essays on Agentic AI, knowledge systems, and enterprise data engineering.
       </p>
@@ -60,7 +60,7 @@ export default function Writing() {
                       </span>
                     ))}
                   </div>
-                  <h2 className="text-base font-bold text-white mb-1 leading-snug">{post.title}</h2>
+                  <h2 className="text-base font-bold text-text-primary mb-1 leading-snug">{post.title}</h2>
                   <p className="text-text-muted text-sm leading-relaxed line-clamp-2">{post.description}</p>
                 </div>
                 <div className="text-right flex-shrink-0">
