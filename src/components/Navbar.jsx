@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTheme } from '../hooks/useTheme.jsx'
 
 const navItems = [
   { label: 'Writing', to: '/writing' },
@@ -9,10 +10,38 @@ const navItems = [
   { label: 'Contact', to: '/contact' },
 ]
 
+function ThemeToggle({ theme, toggleTheme }) {
+  return (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+      className="flex items-center bg-bg-card border border-primary-dim/20 rounded-full p-0.5 cursor-pointer"
+    >
+      {[
+        { value: 'light', icon: '☀️' },
+        { value: 'dark', icon: '🌙' },
+      ].map(({ value, icon }) => (
+        <motion.span
+          key={value}
+          animate={{ opacity: theme === value ? 1 : 0.4 }}
+          transition={{ duration: 0.2 }}
+          className={`text-xs px-2.5 py-1 rounded-full select-none ${
+            theme === value ? 'bg-primary/15 text-primary' : 'text-text-muted'
+          }`}
+        >
+          {icon}
+        </motion.span>
+      ))}
+    </button>
+  )
+}
+
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
+  const { theme, toggleTheme } = useTheme()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50)
@@ -57,6 +86,7 @@ export default function Navbar() {
                 {item.label}
               </Link>
             ))}
+            <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
           </div>
 
           {/* Mobile hamburger */}
@@ -105,6 +135,9 @@ export default function Navbar() {
                   {item.label}
                 </Link>
               ))}
+              <div className="pt-2 border-t border-primary-dim/10">
+                <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
+              </div>
             </div>
           </motion.div>
         )}

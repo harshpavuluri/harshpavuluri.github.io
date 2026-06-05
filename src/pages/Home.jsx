@@ -25,7 +25,7 @@ export default function Home() {
           transition={{ duration: 0.8 }}
           className="relative z-10 max-w-2xl mx-auto px-4 sm:px-6"
         >
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-3 glow-text text-white">
+          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-3 glow-text text-text-primary">
             {personalInfo.name}
           </h1>
           <p className="text-primary font-medium mb-4 text-sm md:text-base">
@@ -64,8 +64,7 @@ export default function Home() {
             </p>
             <Link to={`/writing/${featured.slug}`}>
               <motion.div
-                whileHover={{ borderColor: 'rgba(0,240,255,0.4)' }}
-                className="border border-primary/20 rounded-xl p-6 bg-bg-card cursor-pointer transition-colors duration-300"
+                className="border border-primary/20 rounded-xl p-6 bg-bg-card cursor-pointer transition-colors duration-300 hover:border-primary/40"
               >
                 <div className="flex flex-wrap gap-2 mb-3 items-center">
                   {featured.tags?.map(tag => (
@@ -78,7 +77,7 @@ export default function Home() {
                   ))}
                   <span className="text-xs text-text-muted ml-auto">{featured.readTime} min read</span>
                 </div>
-                <h2 className="text-xl font-bold text-white mb-2 leading-snug">{featured.title}</h2>
+                <h2 className="text-xl font-bold text-text-primary mb-2 leading-snug">{featured.title}</h2>
                 <p className="text-text-muted text-sm leading-relaxed mb-4">{featured.description}</p>
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-text-muted">
@@ -108,9 +107,8 @@ export default function Home() {
               {recent.map(post => (
                 <Link key={post.slug} to={`/writing/${post.slug}`}>
                   <motion.div
-                    whileHover={{ borderColor: 'rgba(0,240,255,0.2)' }}
                     className="border border-primary-dim/20 rounded-lg px-5 py-4 bg-bg-card
-                               flex items-center gap-4 cursor-pointer transition-colors duration-300"
+                               flex items-center gap-4 cursor-pointer transition-colors duration-300 hover:border-primary/20"
                   >
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-text-primary truncate">{post.title}</p>

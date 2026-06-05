@@ -1,4 +1,5 @@
 import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom'
+import { ThemeProvider } from './hooks/useTheme.jsx'
 import Navbar from './components/Navbar'
 import Footer from './sections/Footer'
 import Home from './pages/Home'
@@ -35,5 +36,9 @@ const router = createBrowserRouter([
 ])
 
 export default function App() {
-  return <RouterProvider router={router} />
+  return (
+    <ThemeProvider>
+      <RouterProvider router={router} />
+    </ThemeProvider>
+  )
 }
