@@ -9,6 +9,7 @@
   --color-bg-card-hover: #1a1a24;
   --color-text-primary: #e2e8f0;
   --color-text-muted: #94a3b8;
+  --color-border: #1e1e2e;
   --font-heading: 'Inter', sans-serif;
   --font-body: 'Inter', sans-serif;
 }
@@ -19,7 +20,7 @@ html {
 
 body {
   margin: 0;
-  background-color: #0a0a0f;
+  background-color: var(--color-bg-dark);
   color: #e2e8f0;
   font-family: 'Inter', sans-serif;
 }
@@ -35,6 +36,31 @@ body {
 .glow-border {
   border-color: rgba(0, 240, 255, 0.3);
   box-shadow: 0 0 10px rgba(0, 240, 255, 0.1);
+}
+
+[data-theme="light"] {
+  --color-primary:       #b45309;
+  --color-primary-dim:   #92400e;
+  --color-secondary:     #6d28d9;
+  --color-bg-dark:       #fafaf8;
+  --color-bg-card:       #f5f2eb;
+  --color-bg-card-hover: #ede9df;
+  --color-text-primary:  #1c1917;
+  --color-text-muted:    #78716c;
+  --color-border:        #d6cfc4;
+}
+
+[data-theme="light"] .glow-cyan {
+  box-shadow: none;
+}
+
+[data-theme="light"] .glow-text {
+  text-shadow: none;
+}
+
+[data-theme="light"] .glow-border {
+  border-color: var(--color-border);
+  box-shadow: none;
 }
 
 /* MDX post prose styles */
