@@ -1,11 +1,18 @@
 import { useCallback, useMemo } from 'react'
 import Particles from '@tsparticles/react'
 import { loadSlim } from '@tsparticles/slim'
+import { useTheme } from '../hooks/useTheme'
 
 export default function ParticleBackground() {
+  const { theme } = useTheme()
+
   const particlesInit = useCallback(async (engine) => {
     await loadSlim(engine)
   }, [])
+
+  const particleColor = theme === 'light' ? '#d97706' : '#00f0ff'
+  const linkOpacity = theme === 'light' ? 0.1 : 0.15
+  const maxOpacity = theme === 'light' ? 0.25 : 0.4
 
   const options = useMemo(
     () => ({
@@ -13,12 +20,12 @@ export default function ParticleBackground() {
       background: { color: { value: 'transparent' } },
       fpsLimit: 60,
       particles: {
-        color: { value: '#00f0ff' },
+        color: { value: particleColor },
         links: {
-          color: '#00f0ff',
+          color: particleColor,
           distance: 150,
           enable: true,
-          opacity: 0.15,
+          opacity: linkOpacity,
           width: 1,
         },
         move: {
@@ -31,7 +38,7 @@ export default function ParticleBackground() {
           density: { enable: true, area: 800 },
           value: window.innerWidth < 768 ? 25 : 60,
         },
-        opacity: { value: { min: 0.1, max: 0.4 } },
+        opacity: { value: { min: 0.1, max: maxOpacity } },
         size: { value: { min: 1, max: 3 } },
       },
       interactivity: {
@@ -46,7 +53,7 @@ export default function ParticleBackground() {
       },
       detectRetina: true,
     }),
-    []
+    [particleColor, linkOpacity, maxOpacity]
   )
 
   return (
