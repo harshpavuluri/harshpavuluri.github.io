@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 function getInitialTheme() {
   const stored = localStorage.getItem('theme')
@@ -16,6 +16,9 @@ export function useTheme() {
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
     const handler = (e) => {
+      // Only follow system changes when the user hasn't set a manual override.
+      // Once toggleTheme is called, localStorage is set and this handler
+      // becomes intentionally inert until localStorage is cleared externally.
       if (!localStorage.getItem('theme')) {
         setTheme(e.matches ? 'dark' : 'light')
       }
@@ -24,11 +27,11 @@ export function useTheme() {
     return () => mq.removeEventListener('change', handler)
   }, [])
 
-  function toggleTheme() {
+  const toggleTheme = useCallback(() => {
     const next = theme === 'dark' ? 'light' : 'dark'
     localStorage.setItem('theme', next)
     setTheme(next)
-  }
+  }, [theme])
 
   return { theme, toggleTheme }
 }
