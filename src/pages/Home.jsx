@@ -77,7 +77,7 @@ export default function Home() {
                   ))}
                   <span className="text-xs text-text-muted ml-auto">{featured.readTime} min read</span>
                 </div>
-                <h2 className="text-xl font-bold text-white mb-2 leading-snug">{featured.title}</h2>
+                <h2 className="text-xl font-bold text-text-primary mb-2 leading-snug">{featured.title}</h2>
                 <p className="text-text-muted text-sm leading-relaxed mb-4">{featured.description}</p>
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-text-muted">
