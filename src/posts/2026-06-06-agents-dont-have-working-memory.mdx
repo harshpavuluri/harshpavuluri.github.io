@@ -7,6 +7,8 @@ featured: false
 readTime: 12
 ---
 
+import ArchitectureDiagram from '../components/visualizations/ArchitectureDiagram'
+
 There's a pattern I've noticed every time I build something with an LLM agent: the conversation starts sharp, and then somewhere around the halfway point, it starts to drift.
 
 Not hallucinate — drift. The agent stops connecting things it established twenty turns ago to what's happening right now. You find yourself re-stating context you already gave. The thread gets lost. By the end of a long session, the agent is effectively a different agent than the one you started with.
@@ -88,6 +90,38 @@ When a node crosses a threshold — either mid-session because it keeps getting 
 The session-end sweep matters too. You don't want to only promote nodes that hit the hard threshold mid-session. A node that hovered just below the threshold all session but never got explicitly confirmed is probably still worth keeping.
 
 ---
+
+## The full picture
+
+Here's how the pieces fit together:
+
+<ArchitectureDiagram
+  nodes={[
+    { id: "user",       label: "User",                  group: "core",   position: { x: 0,   y: 130 } },
+    { id: "agent",      label: "Main Chat Agent",        group: "core",   position: { x: 220, y: 130 } },
+    { id: "mcp",        label: "MCP Tools",              group: "system", position: { x: 460, y: 40  } },
+    { id: "kb",         label: "Neo4j + ES",             group: "system", position: { x: 460, y: 150 } },
+    { id: "ctx",        label: "Context Manager",        group: "core",   position: { x: 460, y: 300 } },
+    { id: "session",    label: "Session Graph",          group: "leaf",   position: { x: 700, y: 220 } },
+    { id: "candidates", label: "Candidate Tracker",      group: "leaf",   position: { x: 700, y: 340 } },
+    { id: "promote",    label: "Promotion Pipeline",     group: "leaf",   position: { x: 920, y: 340 } },
+    { id: "perkb",      label: "Persistent KB",          group: "system", position: { x: 920, y: 180 } },
+  ]}
+  edges={[
+    { source: "user",       target: "agent",      label: ""                },
+    { source: "agent",      target: "mcp",        label: "tool calls"      },
+    { source: "agent",      target: "kb",         label: "retrieval"       },
+    { source: "agent",      target: "ctx",        label: "push events"     },
+    { source: "ctx",        target: "agent",      label: "context"         },
+    { source: "ctx",        target: "session",    label: "reads / writes"  },
+    { source: "ctx",        target: "candidates", label: "tracks"          },
+    { source: "candidates", target: "promote",    label: "above threshold" },
+    { source: "promote",    target: "perkb",      label: "promotes"        },
+  ]}
+  height={460}
+/>
+
+The main agent stays focused on the task. The context manager runs alongside it, maintaining the session graph and owning all the memory bookkeeping. When the session ends, whatever crossed the confidence threshold gets promoted to the persistent KB — and that knowledge is available the next time.
 
 ## What this actually changes
 
