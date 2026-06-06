@@ -1,0 +1,120 @@
+---
+title: "Agents don't have working memory. Here's how I think we fix that."
+date: 2026-06-06
+description: "Every LLM session starts from zero. I think we've been treating context as a logistics problem when it's actually a memory architecture problem — and there's a better way to think about it."
+tags: [agentic-ai, knowledge-graphs, context, architecture]
+featured: false
+readTime: 12
+---
+
+There's a pattern I've noticed every time I build something with an LLM agent: the conversation starts sharp, and then somewhere around the halfway point, it starts to drift.
+
+Not hallucinate — drift. The agent stops connecting things it established twenty turns ago to what's happening right now. You find yourself re-stating context you already gave. The thread gets lost. By the end of a long session, the agent is effectively a different agent than the one you started with.
+
+We've mostly treated this as a context window problem. Make the window bigger, stuff more in, add smarter compression. But I've come to think that's the wrong frame. The problem isn't that we're running out of space. The problem is that agents don't have *working memory* — and we've been patching around that absence instead of building it.
+
+---
+
+## What working memory actually is
+
+In cognitive science, working memory is the system that holds and manipulates information actively in use. It's not long-term storage. It's not just a buffer. It's the thing that lets you keep "the point I was making three sentences ago" alive while you're constructing the current sentence.
+
+What we give LLMs instead is a flat token sequence. Everything in the context window — your initial system prompt, a document you retrieved five turns ago, the user's correction two turns back, the last tool call result — sits at the same level of accessibility. There's no structure. There's no sense of what's *currently relevant* versus what happened to be said earlier.
+
+This works fine for short sessions. The flat token sequence is manageable when it's small. But as sessions grow — as agents take on longer-horizon tasks, use more tools, build up more history — the flat approach starts to collapse under its own weight.
+
+The agent can technically *see* everything in the window. It just can't *hold* anything.
+
+---
+
+## The session graph idea
+
+What I've been sketching out is an alternative architecture built around a concept I'm calling a **session graph** — a lightweight, structured representation of everything that has happened in a session and how it relates.
+
+Instead of a flat token stream, you have nodes and edges. A node might be an entity the user mentioned, a decision that was made, a fact retrieved from a knowledge base, a correction the user issued. Edges capture relationships: this fact informed that decision, this entity is the subject of that tool call, this correction supersedes that earlier assumption.
+
+The session graph isn't a replacement for the context window. It's a layer on top of it. The raw conversation still flows normally. But alongside that, a parallel structure is being maintained — one that gives the agent a queryable, structured view of the session's semantics rather than just its tokens.
+
+Think of it like this: the context window is the log. The session graph is the derived view you actually query.
+
+---
+
+## The context manager subagent
+
+Here's where it gets interesting architecturally. Asking the main agent to maintain this graph while also doing its actual job is the wrong design. It splits focus and adds cognitive overhead to every turn.
+
+The better design, I think, is a dedicated **context manager subagent** — a side process with a single responsibility: own the session graph.
+
+The context manager:
+- Observes the conversation stream (without participating in it)
+- Continuously updates the session graph — adding nodes for new entities, edges for new relationships, confidence adjustments for corrections and confirmations
+- Responds to queries from the main agent: "what do we know about X?", "what's the current user intent?", "summarize what we've established about this component"
+- Manages candidate promotion to long-term memory (more on this in a moment)
+
+The main agent's job stays clean: focus on the task, offload the meta-cognition about session state to the context manager.
+
+The interface between them is a hybrid push/pull model. The main agent emits lightweight structured events as they naturally occur — "new entity mentioned," "user corrected assumption," "constraint established." The context manager reacts and updates the graph. When the main agent needs grounding, it pulls: "what's the current state of what we know about this?" The context manager synthesizes from the graph and responds.
+
+---
+
+## Tiered memory: session graph vs. persistent KB
+
+This connects to a broader architecture question about what memory an agent should *keep* across sessions versus what it can throw away.
+
+My current thinking has two tiers:
+
+**Tier 1: Persistent knowledge base.** Things that are durably true and worth knowing in future sessions. Architectural decisions. Established facts about the codebase. The user's stated preferences. This lives in something like Neo4j — a real graph database that persists across sessions and is queryable by the agent when it needs historical grounding.
+
+**Tier 2: Session graph.** The ephemeral working memory for a single session. Raw, free-form, dies when the session ends (or gets promoted). This doesn't need to be a full graph database — in-memory structures work fine, or a lightweight SQLite adjacency table. The point is fast reads and writes within the session, not durability.
+
+The interesting design problem is the promotion pipeline between them.
+
+---
+
+## Confidence-based promotion
+
+Not everything in the session graph deserves to be promoted to the persistent KB. A lot of what gets established in a session is provisional — a working assumption, a hypothesis being tested, context that was relevant to this task but probably not the next one.
+
+What I want is a system where nodes in the session graph have **confidence scores** that evolve dynamically:
+
+- A fact mentioned once conversationally starts with low confidence
+- The same fact corroborated by an MCP tool retrieval gets a boost
+- The user explicitly confirming something bumps confidence significantly
+- The user correcting something drops the confidence of the old node and spawns a new one
+- Nodes that stop being referenced decay over time
+
+When a node crosses a threshold — either mid-session because it keeps getting reinforced, or at session end because it was consistently present — it's a promotion candidate. The context manager runs a reconciliation check against the existing persistent KB: does this conflict with anything we already know? If so, flag for review rather than blind promotion. If not, promote.
+
+The session-end sweep matters too. You don't want to only promote nodes that hit the hard threshold mid-session. A node that hovered just below the threshold all session but never got explicitly confirmed is probably still worth keeping.
+
+---
+
+## What this actually changes
+
+The thing I find compelling about this architecture isn't any one component — it's what it enables at the system level.
+
+Right now, if you ask an agent about something it "learned" three sessions ago, it doesn't know. You have to re-establish it. The session graph + promotion pipeline means that genuinely durable knowledge accumulates. The agent that works with you on a codebase over three months actually knows things about that codebase — not because you told it again, but because it built up a representation over time.
+
+And within a session, the context manager means the agent can handle genuinely long-horizon tasks without losing the thread. When the main agent queries "what do we know about the auth service right now," it gets a synthesized, structured answer drawn from the session graph — not a guess based on what it can still see in the token window.
+
+---
+
+## What I'm still working out
+
+I want to be honest that this is conceptual for me right now. I've built pieces of it — the knowledge graph layer from the previous essay, some early experiments with session-level graph structures — but I haven't shipped this as a complete system. A few open questions I'm sitting with:
+
+**Graph schema flexibility.** A free-flowing session graph that ingests anything is easy to build. One that stays coherent enough to be usefully queryable is harder. How much schema do you impose upfront?
+
+**Context manager latency.** If the main agent has to round-trip to the context manager on every query, that's latency in the hot path. What gets cached? What gets pre-fetched?
+
+**Session graph size.** For very long sessions, even the "lightweight" session graph could get large. At what point does it need its own retrieval layer rather than full scans?
+
+**Multi-agent sessions.** What happens when multiple agents are sharing a session? Do they share one session graph, or maintain separate ones that get merged?
+
+These feel like engineering problems more than conceptual ones — tractable, but worth naming before claiming this is a solved design.
+
+---
+
+The core intuition I keep coming back to is this: we've been treating context as a *logistics* problem (how do we fit enough in the window?) when it's actually a *memory architecture* problem (what's the right structure for holding and using information across time?). The session graph idea is my attempt to think about it from that second frame.
+
+I don't know if this is the right answer. But I think it's the right question.
