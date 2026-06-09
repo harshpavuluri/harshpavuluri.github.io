@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom'
 import { ThemeProvider } from './hooks/useTheme.jsx'
 import Navbar from './components/Navbar'
+import CommandPalette from './components/CommandPalette'
 import Footer from './sections/Footer'
 import Home from './pages/Home'
 import Writing from './pages/Writing'
@@ -13,6 +14,7 @@ function Layout() {
   return (
     <div className="bg-bg-dark text-text-primary font-body min-h-screen flex flex-col">
       <Navbar />
+      <CommandPalette />
       <main className="flex-1">
         <Outlet />
       </main>

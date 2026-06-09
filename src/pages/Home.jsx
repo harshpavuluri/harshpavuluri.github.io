@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import ParticleBackground from '../components/ParticleBackground'
+import SiteGraphHero from '../components/SiteGraphHero'
+import SpotlightCard from '../components/SpotlightCard'
+import Magnetic from '../components/Magnetic'
 import { getAllPosts, getFeatured, getRecent } from '../lib/posts'
 import { socialLinks } from '../data/socialLinks'
 import { personalInfo } from '../data/personalInfo'
@@ -13,12 +15,7 @@ export default function Home() {
   return (
     <div>
       {/* Hero */}
-      <section className="relative flex items-start justify-center pt-32 pb-12 overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <ParticleBackground />
-        </div>
-        <div className="absolute inset-0 z-1 bg-gradient-to-b from-transparent via-transparent to-bg-dark" />
-
+      <section className="relative pt-28 pb-8 overflow-hidden">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -37,19 +34,31 @@ export default function Home() {
           </p>
           <div className="flex gap-3 flex-wrap">
             {socialLinks.map(link => (
-              <a
-                key={link.name}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm px-4 py-2 rounded-full border border-primary-dim/30 text-text-muted
-                           hover:text-primary hover:border-primary/60 transition-colors duration-300"
-              >
-                {link.name} ↗
-              </a>
+              <Magnetic key={link.name}>
+                <a
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm px-4 py-2 rounded-full border border-primary-dim/30 text-text-muted
+                             hover:text-primary hover:border-primary/60 transition-colors duration-300 inline-block"
+                >
+                  {link.name} ↗
+                </a>
+              </Magnetic>
             ))}
           </div>
         </motion.div>
+
+        {/* The site, as a graph — drag it, click into it */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 0.3 }}
+          className="relative z-0 max-w-4xl mx-auto px-4 sm:px-6 mt-4"
+        >
+          <SiteGraphHero />
+        </motion.div>
+        <div className="absolute inset-x-0 bottom-0 h-24 z-1 bg-gradient-to-b from-transparent to-bg-dark pointer-events-none" />
       </section>
 
       {/* Content */}
@@ -63,8 +72,9 @@ export default function Home() {
               Featured Essay
             </p>
             <Link to={`/writing/${featured.slug}`}>
-              <motion.div
-                className="border border-primary/20 rounded-xl p-6 bg-bg-card cursor-pointer transition-colors duration-300 hover:border-primary/40"
+              <SpotlightCard
+                className="border border-primary/20 rounded-xl p-6 bg-bg-card cursor-pointer
+                           transition-colors duration-300 hover:border-primary/40"
               >
                 <div className="flex flex-wrap gap-2 mb-3 items-center">
                   {featured.tags?.map(tag => (
@@ -87,7 +97,7 @@ export default function Home() {
                   </span>
                   <span className="text-primary text-sm">Read →</span>
                 </div>
-              </motion.div>
+              </SpotlightCard>
             </Link>
           </div>
         )}
@@ -106,7 +116,7 @@ export default function Home() {
             <div className="flex flex-col gap-3">
               {recent.map(post => (
                 <Link key={post.slug} to={`/writing/${post.slug}`}>
-                  <motion.div
+                  <SpotlightCard
                     className="border border-primary-dim/20 rounded-lg px-5 py-4 bg-bg-card
                                flex items-center gap-4 cursor-pointer transition-colors duration-300 hover:border-primary/20"
                   >
@@ -121,7 +131,7 @@ export default function Home() {
                       </p>
                     </div>
                     <span className="text-text-muted text-sm flex-shrink-0">→</span>
-                  </motion.div>
+                  </SpotlightCard>
                 </Link>
               ))}
             </div>

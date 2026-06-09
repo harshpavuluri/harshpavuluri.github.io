@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { getAllPosts, filterByTag, extractTags } from '../lib/posts'
+import SpotlightCard from '../components/SpotlightCard'
 
 export default function Writing() {
   const allPosts = getAllPosts()
@@ -37,9 +37,8 @@ export default function Writing() {
       <div className="flex flex-col gap-4">
         {visible.map(post => (
           <Link key={post.slug} to={`/writing/${post.slug}`}>
-            <motion.div
-              whileHover={{ borderColor: 'rgba(0,240,255,0.3)' }}
-              className={`border rounded-xl p-5 bg-bg-card cursor-pointer transition-colors duration-300 ${
+            <SpotlightCard
+              className={`border rounded-xl p-5 bg-bg-card cursor-pointer transition-colors duration-300 hover:border-primary/40 ${
                 post.featured ? 'border-primary/30' : 'border-primary-dim/20'
               }`}
             >
@@ -70,7 +69,7 @@ export default function Writing() {
                   <p className="text-xs text-text-muted">{post.readTime} min</p>
                 </div>
               </div>
-            </motion.div>
+            </SpotlightCard>
           </Link>
         ))}
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTheme } from '../hooks/useTheme.jsx'
+import { openCommandPalette } from './CommandPalette'
 
 const navItems = [
   { label: 'Writing', to: '/writing' },
@@ -9,6 +10,23 @@ const navItems = [
   { label: 'Portfolio', to: '/portfolio' },
   { label: 'Contact', to: '/contact' },
 ]
+
+function CmdKButton() {
+  const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
+  return (
+    <button
+      type="button"
+      onClick={openCommandPalette}
+      aria-label="Open command palette"
+      className="flex items-center gap-1.5 bg-bg-card border border-primary-dim/20 rounded-full
+                 px-3 py-1.5 text-xs text-text-muted hover:text-primary hover:border-primary/40
+                 transition-colors cursor-pointer"
+    >
+      <span>Search</span>
+      <kbd className="text-[10px] tracking-tight opacity-70">{isMac ? '\u2318K' : 'Ctrl K'}</kbd>
+    </button>
+  )
+}
 
 function ThemeToggle({ theme, toggleTheme }) {
   return (
@@ -86,6 +104,7 @@ export default function Navbar() {
                 {item.label}
               </Link>
             ))}
+            <CmdKButton />
             <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
           </div>
 

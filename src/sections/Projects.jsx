@@ -1,14 +1,16 @@
 import { motion } from 'framer-motion'
 import ScrollReveal from '../components/ScrollReveal'
 import { projects } from '../data/projects'
+import SpotlightCard from '../components/SpotlightCard'
 
 function ProjectCard({ project, index }) {
   const isEven = index % 2 === 0
 
   return (
     <ScrollReveal variant={isEven ? 'fadeLeft' : 'fadeRight'} delay={0.1}>
-      <motion.div
-        whileHover={{ y: -4, boxShadow: '0 0 30px rgba(0,240,255,0.15)' }}
+      <SpotlightCard
+        as={motion.div}
+        whileHover={{ y: -4 }}
         transition={{ duration: 0.3 }}
         className={`grid grid-cols-1 lg:grid-cols-2 gap-0 rounded-xl overflow-hidden
                     bg-bg-card border border-primary-dim/10 hover:border-primary/30
@@ -62,7 +64,7 @@ function ProjectCard({ project, index }) {
             </a>
           )}
         </div>
-      </motion.div>
+      </SpotlightCard>
     </ScrollReveal>
   )
 }

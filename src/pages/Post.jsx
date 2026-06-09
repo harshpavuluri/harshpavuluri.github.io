@@ -1,11 +1,22 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import ReadingProgress from '../components/ReadingProgress'
+import PostToc from '../components/PostToc'
 import { getAllPosts, getPostBySlug } from '../lib/posts'
 
 export default function Post() {
   const { slug } = useParams()
   const navigate = useNavigate()
   const post = getPostBySlug(slug)
+  const contentRef = useRef(null)
+  const [showTop, setShowTop] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setShowTop(window.scrollY > 600)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   useEffect(() => {
     if (!post) navigate('/writing', { replace: true })
@@ -24,6 +35,8 @@ export default function Post() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-24">
+      <ReadingProgress />
+      <PostToc contentRef={contentRef} />
       {/* Back */}
       <Link
         to="/writing"
@@ -62,7 +75,7 @@ export default function Post() {
       <div className="h-px bg-gradient-to-r from-primary/20 to-transparent mb-8" />
 
       {/* MDX content */}
-      <div className="prose-post">
+      <div className="prose-post" ref={contentRef}>
         <Component />
       </div>
 
@@ -99,6 +112,24 @@ export default function Post() {
           )}
         </div>
       </div>
+
+      {/* Back to top */}
+      <AnimatePresence>
+        {showTop && (
+          <motion.button
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 12 }}
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            aria-label="Back to top"
+            className="fixed bottom-6 right-6 z-40 w-10 h-10 rounded-full bg-bg-card border border-primary/30
+                       text-primary text-sm shadow-lg shadow-black/30 hover:border-primary/60
+                       transition-colors cursor-pointer"
+          >
+            ↑
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
