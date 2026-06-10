@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion'
 import AmbientGraph from '../components/AmbientGraph'
 import StatusBar from '../components/StatusBar'
