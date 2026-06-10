@@ -17,6 +17,11 @@ describe('parseCount', () => {
     expect(parseCount(null)).toBeNull()
     expect(parseCount({ count: '—' })).toBeNull()
   })
+
+  it('returns null for abbreviated counts rather than mis-parsing', () => {
+    expect(parseCount({ count: '1.2k' })).toBeNull()
+    expect(parseCount({ count: '3M' })).toBeNull()
+  })
 })
 
 describe('fetchViewCount', () => {

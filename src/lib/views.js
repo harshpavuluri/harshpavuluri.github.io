@@ -5,6 +5,8 @@ export const GOATCOUNTER_CODE = 'harshpavuluri'
 
 export function parseCount(data) {
   if (!data || typeof data.count !== 'string') return null
+  // Abbreviated counts ('1.2k') would silently mis-parse — fail to null instead.
+  if (/[a-z]/i.test(data.count)) return null
   const digits = data.count.replace(/\D/g, '')
   return digits ? Number(digits) : null
 }
