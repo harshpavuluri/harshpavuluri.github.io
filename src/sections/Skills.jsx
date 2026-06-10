@@ -107,7 +107,7 @@ export default function Skills() {
           </h2>
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="flex flex-wrap justify-center gap-8">
           {skillCategories.map((category, i) => (
             <SkillCluster key={category.category} category={category} index={i} />
           ))}
