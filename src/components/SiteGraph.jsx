@@ -2,21 +2,19 @@ import { useRef, useEffect, useState, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ForceGraph2D from 'react-force-graph-2d'
 import { useTheme } from '../hooks/useTheme'
-import { getSiteGraph } from '../lib/siteGraph'
 
-export default function SiteGraphHero() {
+// Generic force-graph renderer for any {nodes, links} built by lib/siteGraph.
+// mode 'panel': compact, drag+hover+click only. mode 'fullscreen': zoom/pan too.
+export default function SiteGraph({ data, height = 260, mode = 'panel' }) {
   const containerRef = useRef(null)
   const graphRef = useRef(null)
-  const [size, setSize] = useState({ width: 800, height: 420 })
+  const [width, setWidth] = useState(800)
   const [hoverNode, setHoverNode] = useState(null)
   const navigate = useNavigate()
   const { theme } = useTheme()
   const isDark = theme === 'dark'
-
-  const data = useMemo(() => getSiteGraph(), [])
   const didFitRef = useRef(false)
 
-  // Precompute neighbor lookups for hover highlighting
   const { neighbors, nodeLinks } = useMemo(() => {
     const neighbors = new Map()
     const nodeLinks = new Map()
@@ -49,26 +47,25 @@ export default function SiteGraphHero() {
   useEffect(() => {
     if (!containerRef.current) return
     const el = containerRef.current
-    const update = () => {
-      const w = el.offsetWidth
-      setSize({ width: w, height: w < 640 ? 340 : 440 })
-    }
+    const update = () => setWidth(el.offsetWidth)
     update()
     const observer = new ResizeObserver(update)
     observer.observe(el)
     return () => observer.disconnect()
   }, [])
 
-  // Loosen the layout a bit so labels have room to breathe
   useEffect(() => {
     const fg = graphRef.current
     if (!fg) return
-    fg.d3Force('charge')?.strength(-160)
+    const compact = mode === 'panel'
+    fg.d3Force('charge')?.strength(compact ? -110 : -160)
     fg.d3Force('link')?.distance(l => {
       const g = typeof l.source === 'object' ? l.source.group : 'hub'
-      return g === 'core' || g === 'hub' ? 90 : 55
+      const hubby = g === 'core' || g === 'hub'
+      if (compact) return hubby ? 55 : 36
+      return hubby ? 90 : 55
     })
-  }, [])
+  }, [mode])
 
   const isConnected = useCallback(
     (node) => hoverNode && (node.id === hoverNode.id || neighbors.get(hoverNode.id)?.has(node.id)),
@@ -95,7 +92,6 @@ export default function SiteGraphHero() {
     ctx.fill()
     ctx.shadowBlur = 0
 
-    // Labels: always for core/hubs; leaves only when zoomed in or highlighted
     const showLabel = node.group === 'core' || node.group === 'hub'
       || globalScale > 1.4 || (hoverNode && isConnected(node))
     if (showLabel) {
@@ -116,8 +112,8 @@ export default function SiteGraphHero() {
       <ForceGraph2D
         ref={graphRef}
         graphData={data}
-        width={size.width}
-        height={size.height}
+        width={width}
+        height={height}
         backgroundColor="rgba(0,0,0,0)"
         nodeRelSize={1}
         nodeVal={n => n.val}
@@ -138,19 +134,16 @@ export default function SiteGraphHero() {
           }
         }}
         onNodeClick={handleClick}
-        enableZoomInteraction={false}
-        enablePanInteraction={false}
+        enableZoomInteraction={mode === 'fullscreen'}
+        enablePanInteraction={mode === 'fullscreen'}
         cooldownTicks={140}
         onEngineStop={() => {
           if (!didFitRef.current) {
             didFitRef.current = true
-            graphRef.current?.zoomToFit(600, 48)
+            graphRef.current?.zoomToFit(600, mode === 'panel' ? 24 : 60)
           }
         }}
       />
-      <p className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[11px] text-text-muted/70 pointer-events-none whitespace-nowrap">
-        drag to rearrange · click a node to navigate
-      </p>
     </div>
   )
 }

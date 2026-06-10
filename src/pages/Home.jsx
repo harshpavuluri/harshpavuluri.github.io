@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import SiteGraphHero from '../components/SiteGraphHero'
+import GraphPanel from '../components/GraphPanel'
 import SpotlightCard from '../components/SpotlightCard'
 import Magnetic from '../components/Magnetic'
 import { getAllPosts, getFeatured, getRecent } from '../lib/posts'
@@ -56,7 +56,7 @@ export default function Home() {
           transition={{ duration: 1, delay: 0.3 }}
           className="relative z-0 max-w-4xl mx-auto px-4 sm:px-6 mt-4"
         >
-          <SiteGraphHero />
+          <GraphPanel />
         </motion.div>
         <div className="absolute inset-x-0 bottom-0 h-24 z-1 bg-gradient-to-b from-transparent to-bg-dark pointer-events-none" />
       </section>
