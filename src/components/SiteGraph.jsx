@@ -14,6 +14,12 @@ export default function SiteGraph({ data, height = 260, mode = 'panel' }) {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
   const didFitRef = useRef(false)
+  // Under reduced motion, pre-compute the layout (warmup) and render it
+  // settled instead of animating the force simulation.
+  const reduceMotion = useMemo(
+    () => window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true,
+    [],
+  )
 
   const { neighbors, nodeLinks } = useMemo(() => {
     const neighbors = new Map()
@@ -136,7 +142,8 @@ export default function SiteGraph({ data, height = 260, mode = 'panel' }) {
         onNodeClick={handleClick}
         enableZoomInteraction={mode === 'fullscreen'}
         enablePanInteraction={mode === 'fullscreen'}
-        cooldownTicks={140}
+        warmupTicks={reduceMotion ? 120 : 0}
+        cooldownTicks={reduceMotion ? 0 : 140}
         onEngineStop={() => {
           if (!didFitRef.current) {
             didFitRef.current = true
