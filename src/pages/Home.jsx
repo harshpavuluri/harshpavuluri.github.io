@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom'
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion'
+import AmbientGraph from '../components/AmbientGraph'
+import StatusBar from '../components/StatusBar'
+import NodeDivider from '../components/NodeDivider'
 import GraphPanel from '../components/GraphPanel'
 import SpotlightCard from '../components/SpotlightCard'
-import Magnetic from '../components/Magnetic'
 import { getAllPosts, getFeatured, getRecent } from '../lib/posts'
-import { socialLinks } from '../data/socialLinks'
 import { personalInfo } from '../data/personalInfo'
 
 export default function Home() {
@@ -15,68 +17,39 @@ export default function Home() {
   return (
     <div>
       {/* Hero */}
-      <section className="relative pt-28 pb-8 overflow-hidden">
+      <section className="relative pt-28 pb-10 overflow-hidden">
+        <AmbientGraph />
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="relative z-10 max-w-2xl mx-auto px-4 sm:px-6"
+          transition={{ duration: 0.7 }}
+          className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6"
         >
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-3 glow-text text-text-primary">
+          <StatusBar variant="hero" />
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mt-5 mb-3 text-text-primary">
             {personalInfo.name}
           </h1>
-          <p className="text-primary font-medium mb-4 text-sm md:text-base">
-            Data Engineer @ IBM · Agentic AI · Knowledge Graphs · Enterprise Data Systems
+          <p className="font-mono text-primary text-sm md:text-base">
+            &gt; building agentic systems that remember<span className="cursor-blink">▌</span>
           </p>
-          <p className="text-text-muted text-base leading-relaxed mb-6 max-w-xl">
-            I write about autonomous AI systems, the infrastructure that makes them work,
-            and what they mean for enterprise. Currently building at IBM Data &amp; AI.
-          </p>
-          <div className="flex gap-3 flex-wrap">
-            {socialLinks.map(link => (
-              <Magnetic key={link.name}>
-                <a
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm px-4 py-2 rounded-full border border-primary-dim/30 text-text-muted
-                             hover:text-primary hover:border-primary/60 transition-colors duration-300 inline-block"
-                >
-                  {link.name} ↗
-                </a>
-              </Magnetic>
-            ))}
-          </div>
         </motion.div>
-
-        {/* The site, as a graph — drag it, click into it */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 0.3 }}
-          className="relative z-0 max-w-4xl mx-auto px-4 sm:px-6 mt-4"
-        >
-          <GraphPanel />
-        </motion.div>
-        <div className="absolute inset-x-0 bottom-0 h-24 z-1 bg-gradient-to-b from-transparent to-bg-dark pointer-events-none" />
       </section>
 
-      {/* Content */}
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 pb-24">
-        <div className="h-px bg-gradient-to-r from-primary/20 to-transparent mb-12" />
-
-        {/* Featured post */}
-        {featured && (
-          <div className="mb-12">
-            <p className="text-xs text-secondary font-semibold tracking-widest uppercase mb-4">
-              Featured Essay
-            </p>
-            <Link to={`/writing/${featured.slug}`}>
+      {/* Console row + content */}
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 pb-24">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-stretch">
+          {featured && (
+            <Link to={`/writing/${featured.slug}`} className="md:col-span-3">
               <SpotlightCard
                 className="border border-primary/20 rounded-xl p-6 bg-bg-card cursor-pointer
-                           transition-colors duration-300 hover:border-primary/40"
+                           transition-colors duration-300 hover:border-primary/40 h-full flex flex-col"
               >
-                <div className="flex flex-wrap gap-2 mb-3 items-center">
+                <p className="font-mono text-[10px] tracking-widest uppercase text-secondary mb-3">
+                  featured essay
+                </p>
+                <h2 className="text-xl font-bold text-text-primary mb-2 leading-snug">{featured.title}</h2>
+                <p className="text-text-muted text-sm leading-relaxed mb-4 flex-1">{featured.description}</p>
+                <div className="flex flex-wrap gap-2 items-center">
                   {featured.tags?.map(tag => (
                     <span
                       key={tag}
@@ -85,29 +58,24 @@ export default function Home() {
                       {tag}
                     </span>
                   ))}
-                  <span className="text-xs text-text-muted ml-auto">{featured.readTime} min read</span>
-                </div>
-                <h2 className="text-xl font-bold text-text-primary mb-2 leading-snug">{featured.title}</h2>
-                <p className="text-text-muted text-sm leading-relaxed mb-4">{featured.description}</p>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-text-muted">
-                    {new Date(featured.date).toLocaleDateString('en-US', {
-                      month: 'long', day: 'numeric', year: 'numeric',
-                    })}
-                  </span>
-                  <span className="text-primary text-sm">Read →</span>
+                  <span className="text-xs text-text-muted ml-auto">{featured.readTime} min · read →</span>
                 </div>
               </SpotlightCard>
             </Link>
+          )}
+          <div className="md:col-span-2 min-h-[300px]">
+            <GraphPanel />
           </div>
-        )}
+        </div>
+
+        <NodeDivider className="my-10" />
 
         {/* Recent writing */}
         {recent.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <p className="text-xs text-secondary font-semibold tracking-widest uppercase">
-                Recent Writing
+              <p className="font-mono text-[10px] tracking-widest uppercase text-secondary">
+                recent writing
               </p>
               <Link to="/writing" className="text-primary text-xs hover:underline">
                 All essays →
