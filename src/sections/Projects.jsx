@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { motion } from 'framer-motion'
 import ScrollReveal from '../components/ScrollReveal'
 import { projects } from '../data/projects'
@@ -74,15 +75,27 @@ export default function Projects() {
     <section id="projects" className="py-20 md:py-32 bg-bg-dark">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal>
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-2 text-text-primary">
+          <p className="font-mono text-[10px] tracking-widest uppercase text-text-muted text-center mb-2">
+            hub: portfolio
+          </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-text-primary">
             Projects
           </h2>
-          <div className="w-16 h-1 bg-primary mx-auto mt-4 mb-16 rounded-full glow-cyan" />
         </ScrollReveal>
 
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col">
           {projects.map((project, index) => (
-            <ProjectCard key={project.title} project={project} index={index} />
+            <Fragment key={project.title}>
+              {index > 0 && (
+                <div className="flex justify-center py-1" aria-hidden="true">
+                  <svg width="8" height="44">
+                    <line x1="4" y1="0" x2="4" y2="44" stroke="var(--color-primary)" strokeOpacity="0.3" />
+                    <circle cx="4" cy="22" r="3" fill="var(--color-primary)" fillOpacity="0.55" />
+                  </svg>
+                </div>
+              )}
+              <ProjectCard project={project} index={index} />
+            </Fragment>
           ))}
         </div>
       </div>
