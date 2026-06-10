@@ -53,7 +53,7 @@ export default function Contact() {
                   boxShadow: '0 0 20px rgba(0,240,255,0.2)',
                 }}
                 transition={{ duration: 0.3 }}
-                className="flex flex-col items-center p-8 rounded-xl
+                className="spotlight-card flex flex-col items-center p-8 rounded-xl
                            bg-bg-card border border-primary-dim/20
                            hover:border-primary/40 transition-colors duration-300"
               >

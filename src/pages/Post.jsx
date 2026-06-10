@@ -1,11 +1,25 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import ReadingProgress from '../components/ReadingProgress'
+import PostToc from '../components/PostToc'
+import SiteGraph from '../components/SiteGraph'
+import ViewCount from '../components/ViewCount'
 import { getAllPosts, getPostBySlug } from '../lib/posts'
+import { buildConstellation } from '../lib/siteGraph'
 
 export default function Post() {
   const { slug } = useParams()
   const navigate = useNavigate()
   const post = getPostBySlug(slug)
+  const contentRef = useRef(null)
+  const [showTop, setShowTop] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setShowTop(window.scrollY > 600)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   useEffect(() => {
     if (!post) navigate('/writing', { replace: true })
@@ -18,12 +32,16 @@ export default function Post() {
   const prev = allPosts[idx + 1] ?? null
   const next = allPosts[idx - 1] ?? null
 
+  const constellation = buildConstellation(allPosts, slug)
+
   const { Component, title, date, tags, readTime } = post
   const shareUrl = `https://harshpavuluri.github.io/writing/${slug}`
   const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-24">
+      <ReadingProgress />
+      <PostToc contentRef={contentRef} />
       {/* Back */}
       <Link
         to="/writing"
@@ -55,6 +73,7 @@ export default function Post() {
           </span>
           <span>·</span>
           <span>{readTime} min read</span>
+          <ViewCount path={`/writing/${slug}`} />
         </div>
       </div>
 
@@ -62,9 +81,21 @@ export default function Post() {
       <div className="h-px bg-gradient-to-r from-primary/20 to-transparent mb-8" />
 
       {/* MDX content */}
-      <div className="prose-post">
+      <div className="prose-post" ref={contentRef}>
         <Component />
       </div>
+
+      {/* Connected — this essay's neighborhood in the site graph */}
+      {constellation && (
+        <div className="mt-12">
+          <p className="font-mono text-[10px] tracking-widest uppercase text-text-muted mb-3">
+            connected
+          </p>
+          <div className="border border-primary-dim/20 rounded-xl bg-bg-card overflow-hidden">
+            <SiteGraph data={constellation} height={230} mode="panel" />
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <div className="border-t border-primary-dim/20 mt-12 pt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
@@ -99,6 +130,24 @@ export default function Post() {
           )}
         </div>
       </div>
+
+      {/* Back to top */}
+      <AnimatePresence>
+        {showTop && (
+          <motion.button
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 12 }}
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            aria-label="Back to top"
+            className="fixed bottom-6 right-6 z-40 w-10 h-10 rounded-full bg-bg-card border border-primary/30
+                       text-primary text-sm shadow-lg shadow-black/30 hover:border-primary/60
+                       transition-colors cursor-pointer"
+          >
+            ↑
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
