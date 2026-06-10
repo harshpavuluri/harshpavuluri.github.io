@@ -3,7 +3,10 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ReadingProgress from '../components/ReadingProgress'
 import PostToc from '../components/PostToc'
+import SiteGraph from '../components/SiteGraph'
+import ViewCount from '../components/ViewCount'
 import { getAllPosts, getPostBySlug } from '../lib/posts'
+import { buildConstellation } from '../lib/siteGraph'
 
 export default function Post() {
   const { slug } = useParams()
@@ -28,6 +31,8 @@ export default function Post() {
   const idx = allPosts.findIndex(p => p.slug === slug)
   const prev = allPosts[idx + 1] ?? null
   const next = allPosts[idx - 1] ?? null
+
+  const constellation = buildConstellation(allPosts, slug)
 
   const { Component, title, date, tags, readTime } = post
   const shareUrl = `https://harshpavuluri.github.io/writing/${slug}`
@@ -68,6 +73,7 @@ export default function Post() {
           </span>
           <span>·</span>
           <span>{readTime} min read</span>
+          <ViewCount path={`/writing/${slug}`} />
         </div>
       </div>
 
@@ -78,6 +84,18 @@ export default function Post() {
       <div className="prose-post" ref={contentRef}>
         <Component />
       </div>
+
+      {/* Connected — this essay's neighborhood in the site graph */}
+      {constellation && (
+        <div className="mt-12">
+          <p className="font-mono text-[10px] tracking-widest uppercase text-text-muted mb-3">
+            connected
+          </p>
+          <div className="border border-primary-dim/20 rounded-xl bg-bg-card overflow-hidden">
+            <SiteGraph data={constellation} height={230} mode="panel" />
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <div className="border-t border-primary-dim/20 mt-12 pt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
